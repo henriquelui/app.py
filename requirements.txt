@@ -1,1 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Concursos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Concursos</h1>
 
+        <!-- Listagem de Editais -->
+        <h2>Editais</h2>
+        <table id="editalTable">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>URL</th>
+                    <th>Data de Publicação</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Formulário para adicionar edital -->
+        <h2>Adicionar Novo Edital</h2>
+        <div class="form-group">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" placeholder="Digite o nome do edital">
+        </div>
+        <div class="form-group">
+            <label for="url">URL</label>
+            <input type="text" id="url" placeholder="Digite a URL do edital">
+        </div>
+        <div class="form-group">
+            <label for="data">Data de Publicação</label>
+            <input type="date" id="data">
+        </div>
+        <button id="addEditalBtn">Adicionar Edital</button>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:5000'; // Ajustar ao subir no Render
+
+        // Função para listar editais
+        async function listarEditais() {
+            const response = await fetch(`${apiUrl}/listar-editais`);
+            const editais = await response.json();
+            const tbody = document.querySelector('#editalTable tbody');
+            tbody.innerHTML = '';
+
+            editais.forEach((edital, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${edital.nome}</td>
+                    <td><a href="${edital.url_edital}" target="_blank">Link</a></td>
+                    <td>${edital.data_publicacao}</td>
+                    <td>
+                        <button onclick="excluirEdital(${index + 1})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Função para adicionar edital
+        async function adicionarEdital() {
+            const nome = document.getElementById('nome').value;
+            const url = document.getElementById('url').value;
+            const data = document.getElementById('data').value;
+
+            const response = await fetch(`${apiUrl}/adicionar-edital`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nome, url_edital: url, data_publicacao: data })
+            });
+
+            if (response.ok) {
+                alert('Edital adicionado com sucesso!');
+                listarEditais();
+            } else {
+                alert('Erro ao adicionar edital.');
+            }
+        }
+
+        // Função para excluir edital
+        async function excluirEdital(id) {
+            const response = await fetch(`${apiUrl}/excluir-edital/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Edital excluído com sucesso!');
+                listarEditais();
+            } else {
+                alert('Erro ao excluir edital.');
+            }
+        }
+
+        // Eventos
+        document.getElementById('addEditalBtn').addEventListener('click', adicionarEdital);
+
+        // Carregar lista ao iniciar
+        listarEditais();
+    </script>
+</body>
+</html>
